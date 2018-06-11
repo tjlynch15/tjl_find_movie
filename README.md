@@ -1,4 +1,4 @@
-# mpcs51030-2017-summer-final-project-tjlynch15
+# tjl_find_movie 
 
 
 The name of my app is "Movie Night". The file name is Movie App
