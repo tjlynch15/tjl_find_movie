@@ -89,11 +89,13 @@ class TRDescriptionViewController: UIViewController {
                 if let res = response as? HTTPURLResponse {
                     print("Downloaded picture with response code \(res.statusCode)")
                     if let imageData = data {
+                        
                         // Convert the Data into an image.
                         image = UIImage(data: imageData)!
                         
-                        self.posterImageView.image = image
-                        
+                        DispatchQueue.main.async {
+                            self.posterImageView.image = image
+                        }
                     }
                     else {
                         print("Couldn't get image: Image is nil")

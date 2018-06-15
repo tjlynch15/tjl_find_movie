@@ -108,8 +108,6 @@ class NowPlayingTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        
-        
         // Table view cells are reused and should be dequeued using a cell identifier.
         let cellIdentifier = "NowPlayingTableViewCell"
         

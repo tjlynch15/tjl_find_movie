@@ -15,21 +15,15 @@ import CoreLocation
 
 class TheatersTableViewController: UITableViewController {
     
-    
     let dateFormatter = DateFormatter()
-    
     var aboutView: UIView?
-    
     var movies = [Movie]()
-    
     var urlString = ""
-    
     let locationManager = CLLocationManager()
-    
-    var currentLocation = CLLocation()
-    
+    var currentLocation: CLLocation?
     var useCurrentLoc = true
     var zipCode = ""
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,11 +44,7 @@ class TheatersTableViewController: UITableViewController {
         
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-//        locationManager.requestWhenInUseAuthorization()
-//        locationManager.requestLocation()
-//        print(locationManager.location!)
-        
-        
+
         // Check permission status
         let authStatus: CLAuthorizationStatus = CLLocationManager.authorizationStatus()
         
@@ -89,11 +79,16 @@ class TheatersTableViewController: UITableViewController {
             }
         }
         
+        self.refreshControl?.addTarget(self, action: #selector(TheatersTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
+    }
+    
+    
+    func getMovies()  {
         
-        // Get latitude, longitude, date, and radius (from settings) for api call
+        print("GetMovies!!!!!!")
         
-        let myLongitude = "\(currentLocation.coordinate.longitude)"
-        let myLatitude = "\(currentLocation.coordinate.latitude)"
+        let myLongitude = currentLocation!.coordinate.longitude
+        let myLatitude = currentLocation!.coordinate.latitude
         
         print("my long: \(myLongitude)")
         print("my lat: \(myLatitude)")
@@ -111,15 +106,9 @@ class TheatersTableViewController: UITableViewController {
         
         urlString = "https://data.tmsapi.com/v1.1/movies/showings?startDate=\(convertedDate)&lat=\(myLatitude)&lng=\(myLongitude)&radius=\(selected_radius)&api_key=jbxsdaywdw3vfawhcjtyangk"
         
-        
         print(urlString)
         
-        
-        self.refreshControl?.addTarget(self, action: #selector(TheatersTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
-        
-        
         SharedNetworking.sharedInstance.showNetworkIndicator()
-        
         
         SharedNetworking.sharedInstance.getIssues2(url: urlString) { (issues) in
             
@@ -146,25 +135,23 @@ class TheatersTableViewController: UITableViewController {
             
             SharedNetworking.sharedInstance.hideNetworkIndicator()
         }
-
+        
     }
     
-    
+
     @objc func handleRefresh(_ refreshControl: UIRefreshControl) {
-        // Do some reloading of data and update the table view's data source
-        // Fetch more objects from a web service, for example...
+
+        print("refresh!!")
         
-        SharedNetworking.sharedInstance.getIssues2(url: urlString) { (issues) in
-            
-            self.createDictionary(issues: issues!)
-            
-            DispatchQueue.main.async {
-                
-                self.tableView.reloadData()
-                refreshControl.endRefreshing()
-                print("refresh!!")
-            }
-        }
+        currentLocation = nil
+        
+        print(currentLocation ?? "nil")
+        
+        locationManager.requestLocation()
+        
+        
+        self.refreshControl?.endRefreshing()
+        print("end refreshing")
     }
     
     
@@ -209,7 +196,6 @@ class TheatersTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        
         // Table view cells are reused and should be dequeued using a cell identifier.
         let cellIdentifier = "MoviesTableViewCell"
         
@@ -226,9 +212,6 @@ class TheatersTableViewController: UITableViewController {
         return cell
     }
     
-    
-   
- 
  
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
@@ -344,8 +327,8 @@ class TheatersTableViewController: UITableViewController {
             
             self.tableView.removeFromSuperview()
             
-            let myLongitude = "\(currentLocation.coordinate.longitude)"
-            let myLatitude = "\(currentLocation.coordinate.latitude)"
+            let myLongitude = "\(String(describing: currentLocation?.coordinate.longitude))"
+            let myLatitude = "\(String(describing: currentLocation?.coordinate.latitude))"
             
             let defaults = UserDefaults.standard
             let selected_radius = defaults.string(forKey: "selected_radius")!
@@ -393,7 +376,6 @@ class TheatersTableViewController: UITableViewController {
     }
     
     
-    
     func createDictionary(issues: [[String: Any]]) {
         
         movies = [Movie]()
@@ -412,9 +394,6 @@ class TheatersTableViewController: UITableViewController {
             if (issues[index]["title"] != nil) {
                 
                 title = (issues[index]["title"] as! String)
-                
-                print(title)
-                
                 showtimes = issues[index]["showtimes"] as! [Dictionary<String, Any>]
                 
                 print("title: \(title)")
@@ -426,10 +405,8 @@ class TheatersTableViewController: UITableViewController {
                 
                 movies.append(movie)
             }
-            
         }
     }
-    
     
     
     func convertDate (date: String) -> String {
@@ -461,16 +438,20 @@ extension TheatersTableViewController : CLLocationManagerDelegate {
             
             locationManager.requestLocation()
             
-            print("dCAS current location: \(currentLocation)")
-            self.viewDidLoad()
+            print("dCAS current location: \(String(describing: currentLocation))")
         }
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.last {
             
-            print("dUL location:: \(location)")
+            print(locations)
             
+            print("dUL location:: \(location)")
+            currentLocation = location
+        
+            print("currentLocation:: \(String(describing: currentLocation))")
+            getMovies()
         }
     }
     

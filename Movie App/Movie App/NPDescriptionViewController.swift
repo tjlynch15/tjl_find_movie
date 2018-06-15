@@ -87,7 +87,8 @@ class NPDescriptionViewController: UIViewController {
                 
                 print("Error downloading picture: \(e)")
                 
-            } else {
+            }
+            else {
                 
                 if let res = response as? HTTPURLResponse {
                     print("Downloaded picture with response code \(res.statusCode)")
@@ -99,7 +100,6 @@ class NPDescriptionViewController: UIViewController {
                         DispatchQueue.main.async {
                         self.posterImageView.image = image
                         }
-                        
                     }
                     else {
                         print("Couldn't get image: Image is nil")
